@@ -44,4 +44,39 @@ userRouter.post("/signup" , async(req,res)=> {
         token: token
     })
 })
+
+//2. Route to Sign In 
+const signInPostBody = zod.object({
+    username: zod.string().email() , 
+    password: zod.string()
+})
+userRouter.post("/signin" , async(req,res)=>{
+    const {success} = signInPostBody.safeParse(req.body);
+    if(!success){
+        return res.status(411).json({
+            message: "Error while logging in"
+        })
+    }
+    const user = await User.findOne({
+        username: req.body.username , 
+        password: req.body.password
+    })
+    const userId = user._id ; 
+    if(user){
+        const token = jwt.sign ({
+            userId , 
+    
+        },JWT_SECRET_KEY)
+        res.json({
+            token: token
+        })
+        return;
+
+
+    }
+    res.status(411).json({
+        message: "Error while logging in"
+    })
+
+})
 module.exports = userRouter
