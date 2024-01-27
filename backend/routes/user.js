@@ -27,6 +27,7 @@ userRouter.post("/signup", async (req, res) => {
   if (existingUser) {
     return res.status(411).json({
       message: "Email already taken/Incorrect inputs",
+      userExists: true
     });
   }
   const user = await User.create({
@@ -71,21 +72,39 @@ userRouter.post("/signin", async (req, res) => {
     username: req.body.username,
     password: req.body.password,
   });
-  const userId = user._id;
-  if (user) {
-    const token = jwt.sign(
-      {
-        userId,
-      },
-      JWT_SECRET_KEY
-    );
-    res.json({
-      token: token,
+  
+  // const userId = user._id;
+  // if (user) {
+  //   const token = jwt.sign(
+  //     {
+  //       userId,
+  //     },
+  //     JWT_SECRET_KEY
+  //   );
+  //   res.json({
+  //     token: token,
+  //   });
+  //   return;
+  // }
+  // res.status(411).json({
+  //   message: "Error while logging in",
+  // });
+  if (!user) {
+    return res.status(401).json({
+      message: "Invalid username or password",
     });
-    return;
   }
-  res.status(411).json({
-    message: "Error while logging in",
+
+  const userId = user._id;
+  const token = jwt.sign(
+    {
+      userId,
+    },
+    JWT_SECRET_KEY
+  );
+
+  res.json({
+    token: token,
   });
 });
 //3. Router to update the user info
@@ -142,5 +161,26 @@ userRouter.get("/bulk", async (req, res) => {
     
   });
 });
+
+//Extra - Endpoint to return all the users
+userRouter.get("/allusers", async (req, res) => {
+  try {
+    const users = await User.find();
+    if (!users || users.length === 0) {
+      return res.status(411).json({
+        message: "No users found",
+      });
+    }
+
+    res.json({
+      users,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Internal Server Error',
+    });
+  }
+});
+
 
 module.exports = userRouter;
