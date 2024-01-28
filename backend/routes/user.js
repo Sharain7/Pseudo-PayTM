@@ -130,8 +130,8 @@ userRouter.put("/user", authMiddleware, async (req, res) => {
 // 4. Bulk Route
 
 userRouter.get("/bulk", async (req, res) => {
-  const requestedName = req.query.filter || "";
-  console.log(requestedName)
+  const requestedName = (req.query.filter || "").trim();
+
   if (!requestedName) {
     return res.json({
       message: "Name has not been given",
@@ -172,9 +172,10 @@ userRouter.get("/allusers", async (req, res) => {
       });
     }
 
-    res.json({
+    return res.json({
       users,
     });
+    
   } catch (error) {
     res.status(500).json({
       message: 'Internal Server Error',
