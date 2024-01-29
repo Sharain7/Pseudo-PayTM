@@ -9,10 +9,10 @@ export const Dashboard = () => {
     return (
         <div>
             <AppBar />
-            <Balance />
+            <Balance/>
             <div className="ml-2">
             <Users/>
-            <TransferMoney/>
+            
 
             </div>
             
