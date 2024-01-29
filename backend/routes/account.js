@@ -62,11 +62,11 @@ accountRouter.get("/balance", authMiddleware, async (req, res) => {
 // });
 
 // 2. Endpoint to Transfer Amounts -> Using the Transactions in DB
-accountRouter.post("/transfer" , async(req,res)=>{
+accountRouter.post("/transfer" ,authMiddleware ,  async(req,res)=>{
     const session = await mongoose.startSession();
     session.startTransaction() ;
     const {amount , to} = req.body ; 
-    const account = Account.findOne({
+    const account = await Account.findOne({
         userId: req.userId 
     }).session(session)
     if(!account || account.balance < amount){
@@ -86,13 +86,15 @@ accountRouter.post("/transfer" , async(req,res)=>{
         })
     }
     //Everything works fine, do the transaction => transfer
-    await Account.updateOne({ userId: req.userId }, { $inc: { balance: -amount } }).session(session);
-    await Account.updateOne({ userId: to }, { $inc: { balance: amount } }).session(session);
+    await Account.findOneAndUpdate({ userId: req.userId }, { $inc: { balance: -amount } }).session(session);
+    
+    await Account.findOneAndUpdate({ userId: to }, { $inc: { balance: amount } }).session(session);
     
     //Committing the session ( expecting no rollback)
     await session.commitTransaction();
+    
     res.json({
-        message: "Transfer successful"
+        message: "Transfer successful",
     });
 }) 
 
